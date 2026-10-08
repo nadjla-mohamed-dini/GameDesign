@@ -63,13 +63,20 @@
         </header>
 
         <div class="stage" id="stage" tabindex="-1">
-          <div class="torch torch--left" aria-hidden="true"></div>
-          <div class="torch torch--right" aria-hidden="true"></div>
-          <div class="arch" aria-hidden="true"></div>
-          <p class="stage__whisper">Les torches tiennent. Les voix ne sont pas encore entrées.</p>
+          <canvas id="room" aria-label="Salle du Seuil"></canvas>
         </div>
 
-        <p class="hint">Maj — carnet</p>
+        <p class="hint" id="hint">ZQSD — marcher · Maj — carnet</p>
+
+        <div class="dialogue" id="dialogue" hidden>
+          <div class="dialogue__sheet">
+            <div>
+              <p class="eyebrow" id="dialogue-speaker"></p>
+              <p id="dialogue-text"></p>
+            </div>
+            <button type="button" class="btn" data-action="close-dialogue">Fermer</button>
+          </div>
+        </div>
 
         <aside class="journal" id="journal" hidden>
           <div class="journal__sheet" role="dialog" aria-modal="true" aria-labelledby="journal-title">

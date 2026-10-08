@@ -3,6 +3,7 @@ export const state = {
   hp: 100,
   maxHp: 100,
   journalOpen: false,
+  dialogue: null,
   entries: [],
   zoneName: "Le Seuil",
 };

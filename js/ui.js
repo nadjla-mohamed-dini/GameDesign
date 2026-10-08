@@ -9,6 +9,9 @@ export function bindUi() {
   const journal = document.getElementById("journal");
   const list = document.getElementById("journal-list");
   const empty = document.getElementById("journal-empty");
+  const dialogue = document.getElementById("dialogue");
+  const dialogueSpeaker = document.getElementById("dialogue-speaker");
+  const dialogueText = document.getElementById("dialogue-text");
 
   subscribe(render);
   render(state);
@@ -30,14 +33,28 @@ export function bindUi() {
     list.replaceChildren();
     current.entries.forEach((entry) => {
       const item = document.createElement("li");
-      item.textContent = entry.text;
+      const speaker = document.createElement("span");
+      speaker.className = "journal__who";
+      speaker.textContent = entry.speaker;
+      const quote = document.createElement("p");
+      quote.textContent = entry.text;
+      item.append(speaker, quote);
       list.appendChild(item);
     });
     empty.hidden = current.entries.length > 0;
 
+    const showDialogue = current.screen === "game" && Boolean(current.dialogue);
+    dialogue.hidden = !showDialogue;
+    if (showDialogue) {
+      dialogueSpeaker.textContent = current.dialogue.speaker;
+      dialogueText.textContent = current.dialogue.text;
+    }
+
     if (showJournal) {
       journal.querySelector("[data-action='close-journal']").focus();
-    } else if (document.activeElement?.closest("#journal")) {
+    } else if (showDialogue) {
+      dialogue.querySelector("[data-action='close-dialogue']").focus();
+    } else if (document.activeElement?.closest("#journal, #dialogue")) {
       document.getElementById("stage").focus({ preventScroll: true });
     }
   }
