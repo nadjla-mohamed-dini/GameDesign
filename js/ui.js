@@ -50,7 +50,9 @@ export function bindUi() {
       dialogueText.textContent = current.dialogue.text;
     }
 
-    if (showJournal) {
+    if (current.screen === "defeat") {
+      document.querySelector("[data-action='restart']").focus();
+    } else if (showJournal) {
       journal.querySelector("[data-action='close-journal']").focus();
     } else if (showDialogue) {
       dialogue.querySelector("[data-action='close-dialogue']").focus();

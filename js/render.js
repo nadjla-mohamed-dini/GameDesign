@@ -1,14 +1,8 @@
-import { MAP, TILE, worldSize } from "./collide.js";
-
-const TORCHES = [
-  { x: TILE * 1.5, y: TILE * 1.4 },
-  { x: TILE * 8, y: TILE * 1.4 },
-  { x: TILE * 14.5, y: TILE * 1.4 },
-  { x: TILE * 14.5, y: TILE * 8.5 },
-];
+import { TILE, findMark, worldSize } from "./collide.js";
 
 export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
-  const world = worldSize();
+  const { map } = scene;
+  const world = worldSize(map);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cssWidth, cssHeight);
   ctx.fillStyle = "#0c0a09";
@@ -18,40 +12,68 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
   ctx.translate(view.offsetX, view.offsetY);
   ctx.scale(view.scale, view.scale);
 
-  drawFloor(ctx);
-  drawWalls(ctx);
-  drawScratches(ctx);
-  drawPerson(ctx, scene.eliane.x, scene.eliane.y, {
-    cloak: "#6e6256",
-    skin: "#d9c3a4",
-  });
+  drawFloor(ctx, map, scene.warm);
+  drawWalls(ctx, map);
+  if (scene.scratches) {
+    drawScratches(ctx);
+  }
+  const left = findMark(map, "L");
+  const right = findMark(map, "R");
+  if (left) {
+    for (let row = 0; row < map.length; row += 2) {
+      if (map[row][0] === "L") {
+        drawLurker(ctx, TILE * 0.45, row * TILE + TILE / 2);
+      }
+    }
+    drawLabel(ctx, TILE * 2.3, TILE * 2.4, "Gauche");
+  }
+  if (right) {
+    drawLabel(ctx, (map[0].length - 2.5) * TILE, TILE * 2.4, "Droit");
+  }
+  if (scene.eliane) {
+    drawPerson(ctx, scene.eliane.x, scene.eliane.y, {
+      cloak: "#6e6256",
+      skin: "#d9c3a4",
+    });
+    drawLabel(ctx, scene.eliane.x, scene.eliane.y - 42, "Eliane");
+    if (scene.near) {
+      ctx.strokeStyle = "rgba(232, 165, 75, 0.85)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(scene.eliane.x, scene.eliane.y + 4, 26, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
   drawPerson(ctx, scene.player.x, scene.player.y, {
     cloak: "#1a1411",
     skin: "#c6a07c",
     lantern: true,
   });
-  drawLabel(ctx, scene.eliane.x, scene.eliane.y - 42, "Eliane");
-  if (scene.near) {
-    ctx.strokeStyle = "rgba(232, 165, 75, 0.85)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(scene.eliane.x, scene.eliane.y + 4, 26, 0, Math.PI * 2);
-    ctx.stroke();
+  drawLights(ctx, scene.time, scene.player, scene.torches);
+  if (scene.hurt > 0) {
+    ctx.fillStyle = `rgba(120, 30, 40, ${0.28 * scene.hurt})`;
+    ctx.fillRect(0, 0, world.width, world.height);
   }
-  drawLights(ctx, scene.time, scene.player);
   drawVignette(ctx, world.width, world.height);
   ctx.restore();
 }
 
-function drawFloor(ctx) {
-  for (let row = 0; row < MAP.length; row += 1) {
-    for (let col = 0; col < MAP[row].length; col += 1) {
-      if (MAP[row][col] === "#") {
+function drawFloor(ctx, map, warm) {
+  for (let row = 0; row < map.length; row += 1) {
+    for (let col = 0; col < map[row].length; col += 1) {
+      if (map[row][col] === "#") {
         continue;
       }
+      const cell = map[row][col];
       const tone = (col * 13 + row * 29) % 9;
-      const base = 46 + tone;
-      ctx.fillStyle = `rgb(${base}, ${base - 7}, ${base - 12})`;
+      const base = (warm ? 58 : 46) + tone;
+      if (cell === "L") {
+        ctx.fillStyle = `rgb(${62 + tone}, ${28}, ${32})`;
+      } else if (cell === "R") {
+        ctx.fillStyle = `rgb(${78 + tone}, ${58 + tone}, ${32})`;
+      } else {
+        ctx.fillStyle = `rgb(${base + (warm ? 10 : 0)}, ${base - 7}, ${base - 14})`;
+      }
       ctx.fillRect(col * TILE, row * TILE, TILE + 0.5, TILE + 0.5);
       if ((col + row) % 4 === 0) {
         ctx.fillStyle = "rgba(0, 0, 0, 0.13)";
@@ -61,21 +83,18 @@ function drawFloor(ctx) {
   }
 }
 
-function drawWalls(ctx) {
-  for (let row = 0; row < MAP.length; row += 1) {
-    for (let col = 0; col < MAP[row].length; col += 1) {
-      if (MAP[row][col] !== "#") {
+function drawWalls(ctx, map) {
+  for (let row = 0; row < map.length; row += 1) {
+    for (let col = 0; col < map[row].length; col += 1) {
+      if (map[row][col] !== "#") {
         continue;
       }
       const x = col * TILE;
       const y = row * TILE;
-      const edge = row === 0 || col === 0 || row === MAP.length - 1 || col === MAP[0].length - 1;
-      ctx.fillStyle = edge ? "#12100e" : "#2a241f";
+      const edge = row === 0 || col === 0 || row === map.length - 1 || col === map[0].length - 1;
+      ctx.fillStyle = edge ? "#12100e" : "#1c1815";
       ctx.fillRect(x, y, TILE + 0.5, TILE + 0.5);
-      if (!edge) {
-        ctx.fillStyle = "#1c1815";
-        ctx.fillRect(x, y, TILE + 0.5, TILE + 0.5);
-      } else if (MAP[row + 1] && MAP[row + 1][col] !== "#") {
+      if (edge && map[row + 1] && map[row + 1][col] !== "#") {
         ctx.fillStyle = "rgba(232, 165, 75, 0.14)";
         ctx.fillRect(x, y + TILE - 4, TILE, 4);
       }
@@ -84,16 +103,29 @@ function drawWalls(ctx) {
 }
 
 function drawScratches(ctx) {
-  ctx.strokeStyle = "rgba(120, 42, 48, 0.8)";
+  ctx.strokeStyle = "rgba(120, 42, 48, 0.85)";
   ctx.lineWidth = 2;
-  const originX = TILE + 10;
-  const originY = TILE * 5 + 8;
+  const originX = TILE + 14;
+  const originY = TILE * 5 + 6;
   for (let i = 0; i < 4; i += 1) {
     ctx.beginPath();
     ctx.moveTo(originX, originY + i * 8);
-    ctx.lineTo(originX + 26, originY + 14 + i * 8);
+    ctx.lineTo(originX + 28, originY + 16 + i * 8);
     ctx.stroke();
   }
+}
+
+function drawLurker(ctx, x, y) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = "#2a1218";
+  ctx.beginPath();
+  ctx.moveTo(0, -34);
+  ctx.lineTo(10, 16);
+  ctx.lineTo(-10, 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawPerson(ctx, x, y, look) {
@@ -130,21 +162,23 @@ function drawLabel(ctx, x, y, text) {
   ctx.fillText(text, x, y);
 }
 
-function drawLights(ctx, time, player) {
+function drawLights(ctx, time, player, torches) {
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  TORCHES.forEach((torch, index) => {
+  torches.forEach((torch, index) => {
+    const x = torch.col * TILE;
+    const y = torch.row * TILE;
     const flicker = 0.75 + Math.sin(time * 3 + index) * 0.12;
     const radius = 118 * flicker;
-    const glow = ctx.createRadialGradient(torch.x, torch.y, 4, torch.x, torch.y, radius);
+    const glow = ctx.createRadialGradient(x, y, 4, x, y, radius);
     glow.addColorStop(0, "rgba(255, 214, 150, 0.55)");
     glow.addColorStop(1, "rgba(232, 165, 75, 0)");
     ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(torch.x, torch.y, radius, 0, Math.PI * 2);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#ffd7a1";
-    ctx.fillRect(torch.x - 2, torch.y - 8, 4, 10);
+    ctx.fillRect(x - 2, y - 8, 4, 10);
   });
   const lamp = ctx.createRadialGradient(player.x + 12, player.y, 2, player.x, player.y, 70);
   lamp.addColorStop(0, "rgba(255, 200, 120, 0.35)");

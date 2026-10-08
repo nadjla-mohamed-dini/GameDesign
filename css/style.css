@@ -169,6 +169,10 @@ h1 {
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
 }
 
+.farewell {
+  margin: 0 0 1.4rem;
+}
+
 .parchment h2,
 .journal__sheet h2 {
   margin: 0 0 1rem;

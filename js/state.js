@@ -6,6 +6,8 @@ export const state = {
   dialogue: null,
   entries: [],
   zoneName: "Le Seuil",
+  roomId: "seuil",
+  runId: 1,
 };
 
 const listeners = new Set();
@@ -25,4 +27,17 @@ export function toggleJournal() {
     return;
   }
   patch({ journalOpen: !state.journalOpen });
+}
+
+export function restartRun() {
+  patch({
+    screen: "game",
+    hp: 100,
+    journalOpen: false,
+    dialogue: null,
+    entries: [],
+    zoneName: "Le Seuil",
+    roomId: "seuil",
+    runId: state.runId + 1,
+  });
 }

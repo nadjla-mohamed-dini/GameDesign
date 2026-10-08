@@ -1,6 +1,10 @@
-import { state, patch, toggleJournal } from "./state.js";
+import { state, patch, restartRun, toggleJournal } from "./state.js";
 
 const held = new Set();
+
+export function releaseKeys() {
+  held.clear();
+}
 
 export function getAxis() {
   if (state.screen !== "game" || state.journalOpen || state.dialogue) {
@@ -106,5 +110,10 @@ function run(action) {
   }
   if (action === "close-dialogue") {
     patch({ dialogue: null });
+  }
+  if (action === "restart") {
+    releaseKeys();
+    restartRun();
+    document.getElementById("stage").focus();
   }
 }
