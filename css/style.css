@@ -232,6 +232,27 @@ h1 {
   font-style: italic;
 }
 
+.sound {
+  margin-top: 0.45rem;
+  width: fit-content;
+  border: 1px solid var(--amber);
+  background: transparent;
+  color: var(--parchment);
+  font-family: var(--display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  padding: 0.28rem 0.55rem;
+  cursor: pointer;
+}
+
+.sound:hover,
+.sound:focus-visible {
+  background: var(--amber);
+  color: var(--ink);
+  outline: none;
+}
+
 .vial {
   display: flex;
   align-items: center;
@@ -303,6 +324,20 @@ h1 {
 
 #stage:focus {
   outline: none;
+}
+
+.veil {
+  position: absolute;
+  inset: 0;
+  background: #0c0a09;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+
+.veil.is-down {
+  opacity: 1;
+  transition: none;
 }
 
 .dialogue {

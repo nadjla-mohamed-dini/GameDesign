@@ -75,6 +75,7 @@
           <div class="hud__who">
             <span class="hud__name">Malakai</span>
             <span class="hud__zone" id="zone-name">Le Seuil</span>
+            <button type="button" id="sound-toggle" class="sound" data-action="toggle-sound" aria-pressed="false">Son</button>
           </div>
           <div class="hud__life">
             <p class="shield" id="shield" hidden>Lueur</p>
@@ -89,6 +90,7 @@
 
         <div class="stage" id="stage" tabindex="-1">
           <canvas id="room" aria-label="Salle du Seuil"></canvas>
+          <div id="veil" class="veil" aria-hidden="true"></div>
         </div>
 
         <p class="pressure" id="pressure" hidden></p>

@@ -8,8 +8,12 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
   ctx.fillStyle = "#0c0a09";
   ctx.fillRect(0, 0, cssWidth, cssHeight);
 
+  const jolt = scene.hurt > 0 ? scene.hurt * 4 : 0;
   ctx.save();
-  ctx.translate(view.offsetX, view.offsetY);
+  ctx.translate(
+    view.offsetX + Math.sin(scene.time * 46) * jolt,
+    view.offsetY + Math.cos(scene.time * 33) * jolt
+  );
   ctx.scale(view.scale, view.scale);
 
   drawFloor(ctx, map, scene.warm, scene.tones);
@@ -17,6 +21,12 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
   if (scene.scratches) {
     drawScratches(ctx);
   }
+  drawLights(ctx, scene.time, scene.player, scene.torches, scene.hurt);
+  if (scene.hurt > 0) {
+    ctx.fillStyle = `rgba(120, 30, 40, ${0.22 * scene.hurt})`;
+    ctx.fillRect(0, 0, world.width, world.height);
+  }
+  drawVignette(ctx, world.width, world.height);
   drawExits(ctx, map, scene.tones, scene.labels);
   scene.actors.forEach((actor) => {
     if (actor.kind === "chest") {
@@ -40,12 +50,6 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
     skin: "#c6a07c",
     lantern: true,
   });
-  drawLights(ctx, scene.time, scene.player, scene.torches);
-  if (scene.hurt > 0) {
-    ctx.fillStyle = `rgba(120, 30, 40, ${0.28 * scene.hurt})`;
-    ctx.fillRect(0, 0, world.width, world.height);
-  }
-  drawVignette(ctx, world.width, world.height);
   ctx.restore();
 }
 
@@ -183,14 +187,14 @@ function drawLabel(ctx, x, y, text) {
   ctx.fillText(text, x, y);
 }
 
-function drawLights(ctx, time, player, torches) {
+function drawLights(ctx, time, player, torches, hurt) {
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   torches.forEach((torch, index) => {
     const x = torch.col * TILE;
     const y = torch.row * TILE;
-    const flicker = 0.75 + Math.sin(time * 3 + index) * 0.12;
-    const radius = 118 * flicker;
+    const flicker = 0.72 + Math.sin(time * 3.4 + index) * 0.2;
+    const radius = (hurt > 0 ? 96 : 124) * flicker;
     const glow = ctx.createRadialGradient(x, y, 4, x, y, radius);
     glow.addColorStop(0, "rgba(255, 214, 150, 0.55)");
     glow.addColorStop(1, "rgba(232, 165, 75, 0)");
@@ -201,12 +205,13 @@ function drawLights(ctx, time, player, torches) {
     ctx.fillStyle = "#ffd7a1";
     ctx.fillRect(x - 2, y - 8, 4, 10);
   });
-  const lamp = ctx.createRadialGradient(player.x + 12, player.y, 2, player.x, player.y, 70);
+  const reach = 74 + Math.sin(time * 7) * 6;
+  const lamp = ctx.createRadialGradient(player.x + 12, player.y, 2, player.x, player.y, reach);
   lamp.addColorStop(0, "rgba(255, 200, 120, 0.35)");
   lamp.addColorStop(1, "rgba(255, 200, 120, 0)");
   ctx.fillStyle = lamp;
   ctx.beginPath();
-  ctx.arc(player.x, player.y, 70, 0, Math.PI * 2);
+  ctx.arc(player.x, player.y, reach, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -221,7 +226,8 @@ function drawVignette(ctx, width, height) {
     width * 0.62
   );
   vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
-  vignette.addColorStop(1, "rgba(0, 0, 0, 0.62)");
+  vignette.addColorStop(0.58, "rgba(0, 0, 0, 0)");
+  vignette.addColorStop(1, "rgba(0, 0, 0, 0.74)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, width, height);
 }

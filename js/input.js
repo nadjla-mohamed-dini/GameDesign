@@ -1,3 +1,4 @@
+import { isMuted, toggleMute, unlock } from "./audio.js";
 import { state, patch, restartRun, toggleJournal } from "./state.js";
 
 const held = new Set();
@@ -102,8 +103,15 @@ function run(action) {
     patch({ screen: "title", journalOpen: false });
   }
   if (action === "to-game") {
+    unlock();
     patch({ screen: "game", journalOpen: false, dialogue: null });
     document.getElementById("stage").focus();
+  }
+  if (action === "toggle-sound") {
+    const quiet = toggleMute();
+    const button = document.getElementById("sound-toggle");
+    button.textContent = quiet ? "Muet" : "Son";
+    button.setAttribute("aria-pressed", String(quiet));
   }
   if (action === "close-journal") {
     patch({ journalOpen: false });

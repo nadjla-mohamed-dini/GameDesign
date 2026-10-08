@@ -12,6 +12,7 @@ import {
 import { drawRoom } from "./render.js";
 import { ROOMS } from "./rooms.js";
 import { applyChoice, applyHit } from "./resolve.js";
+import { presence, rest, seal, wound } from "./audio.js";
 
 const HIT_RADIUS = 30;
 
@@ -99,7 +100,13 @@ export function startRoom() {
         seenRoom = state.roomId;
         const start = ROOMS[seenRoom].start;
         player = tileCenter(start.col, start.row);
+        passDoor();
       }
+      presence({
+        moving: axis.x !== 0 || axis.y !== 0,
+        hp: state.hp,
+        now,
+      });
       hurt = Math.max(0, hurt - dt * 1.6);
       if (state.screen === "game") {
         tickPressure(dt);
@@ -107,8 +114,22 @@ export function startRoom() {
       if (state.screen === "game") {
         paint(now);
       }
+    } else {
+      rest();
     }
     requestAnimationFrame(frame);
+  }
+
+  function sting() {
+    hurt = 1;
+    wound();
+  }
+
+  function passDoor() {
+    seal();
+    const veil = document.getElementById("veil");
+    veil.classList.add("is-down");
+    window.setTimeout(() => veil.classList.remove("is-down"), 70);
   }
 
   function enterCorridor(exit) {
@@ -123,7 +144,9 @@ export function startRoom() {
     }
     const result = applyChoice(state, exit);
     if (exit.ending) {
-      hurt = result.dead || result.shielded ? 1 : 0;
+      if (result.dead || result.shielded) {
+        sting();
+      }
       patch({
         hp: result.hp,
         shield: result.shield,
@@ -136,7 +159,7 @@ export function startRoom() {
       return;
     }
     if (result.dead) {
-      hurt = 1;
+      sting();
       patch({
         hp: 0,
         shield: false,
@@ -148,7 +171,7 @@ export function startRoom() {
       return;
     }
     if (!exit.correct || result.shielded) {
-      hurt = 1;
+      sting();
     }
     const dest = ROOMS[exit.to];
     let text = result.shielded ? "La lueur cède à ta place. Tu passes." : exit.line;
@@ -229,7 +252,7 @@ export function startRoom() {
       clock.struck = true;
       pressure.hidden = true;
       const blow = applyHit(state, 15);
-      hurt = 1;
+      sting();
       if (blow.dead) {
         patch({
           hp: 0,
