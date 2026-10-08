@@ -6,6 +6,7 @@ export function bindUi() {
   const liquid = document.getElementById("vial-liquid");
   const count = document.getElementById("vial-count");
   const zone = document.getElementById("zone-name");
+  const shield = document.getElementById("shield");
   const journal = document.getElementById("journal");
   const list = document.getElementById("journal-list");
   const empty = document.getElementById("journal-empty");
@@ -26,6 +27,7 @@ export function bindUi() {
     count.textContent = String(hp);
     vial.setAttribute("aria-label", `Vie : ${hp} sur ${current.maxHp}`);
     zone.textContent = current.zoneName;
+    shield.hidden = !current.shield;
 
     const showJournal = current.screen === "game" && current.journalOpen;
     journal.hidden = !showJournal;

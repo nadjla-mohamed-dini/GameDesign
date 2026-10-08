@@ -11,18 +11,14 @@ import {
 } from "./collide.js";
 import { drawRoom } from "./render.js";
 import { ROOMS } from "./rooms.js";
-import { wound } from "./resolve.js";
-
-const LINE =
-  "Le couloir de gauche sent le sang. J’en viens. Le droit mène à la salle des torches. Prends le droit.";
+import { applyChoice } from "./resolve.js";
 
 const HIT_RADIUS = 30;
 
 export function startRoom() {
   const canvas = document.getElementById("room");
   const hint = document.getElementById("hint");
-  const origin = ROOMS.seuil.start;
-  let player = tileCenter(origin.col, origin.row);
+  let player = tileCenter(ROOMS.seuil.start.col, ROOMS.seuil.start.row);
   let note = "";
   let noteUntil = 0;
   let hurt = 0;
@@ -47,40 +43,37 @@ export function startRoom() {
     if (state.screen !== "game" || state.journalOpen || state.dialogue) {
       return;
     }
-    const eliane = elianeAt(state.roomId);
-    if (!eliane) {
-      return;
-    }
     const world = pointFromEvent(canvas, event);
-    const onEliane = Math.hypot(world.x - eliane.x, world.y - eliane.y) <= HIT_RADIUS;
-    if (!onEliane) {
+    const actor = actorAt(state.roomId, world.x, world.y);
+    if (!actor) {
       return;
     }
-    const near = Math.hypot(player.x - eliane.x, player.y - eliane.y) <= HEAR_DISTANCE;
+    const near = Math.hypot(player.x - actor.x, player.y - actor.y) <= HEAR_DISTANCE;
     if (!near) {
       note = "Trop loin pour l’entendre.";
       noteUntil = performance.now() + 1400;
       return;
     }
-    const entries = state.entries.some((entry) => entry.id === "eliane")
+    const already = state.entries.some((entry) => entry.id === actor.id);
+    if (actor.once && already) {
+      patch({ dialogue: { speaker: actor.name, text: "Le coffre est vide." } });
+      return;
+    }
+    const entries = already
       ? state.entries
-      : [...state.entries, { id: "eliane", speaker: "Eliane", text: LINE }];
-    patch({
-      dialogue: { speaker: "Eliane", text: LINE },
-      entries,
-    });
+      : [...state.entries, { id: actor.id, speaker: actor.name, text: actor.line }];
+    patch({ dialogue: { speaker: actor.name, text: actor.line }, entries });
   });
 
   canvas.addEventListener("mousemove", (event) => {
-    const eliane = elianeAt(state.roomId);
-    if (!eliane || state.dialogue) {
+    if (state.dialogue) {
       canvas.style.cursor = "default";
       return;
     }
     const world = pointFromEvent(canvas, event);
-    const onEliane = Math.hypot(world.x - eliane.x, world.y - eliane.y) <= HIT_RADIUS;
-    const near = Math.hypot(player.x - eliane.x, player.y - eliane.y) <= HEAR_DISTANCE;
-    canvas.style.cursor = onEliane && near ? "pointer" : "default";
+    const actor = actorAt(state.roomId, world.x, world.y);
+    const near = actor && Math.hypot(player.x - actor.x, player.y - actor.y) <= HEAR_DISTANCE;
+    canvas.style.cursor = near ? "pointer" : "default";
   });
 
   function frame(now) {
@@ -91,8 +84,8 @@ export function startRoom() {
       const axis = getAxis();
       player = move(room.map, player.x, player.y, axis.x * SPEED * dt, axis.y * SPEED * dt);
       const cell = tileAt(room.map, player.x, player.y);
-      if (!state.dialogue && !state.journalOpen && (cell === "L" || cell === "R")) {
-        enterCorridor(cell);
+      if (!state.dialogue && !state.journalOpen && room.exits[cell]) {
+        enterCorridor(room.exits[cell]);
       }
       if (state.roomId !== seenRoom) {
         seenRoom = state.roomId;
@@ -105,31 +98,38 @@ export function startRoom() {
     requestAnimationFrame(frame);
   }
 
-  function enterCorridor(cell) {
-    if (cell === "L") {
-      const blow = wound(state.hp);
+  function enterCorridor(exit) {
+    const result = applyChoice(state, exit);
+    if (result.dead) {
       hurt = 1;
-      if (blow.dead) {
-        patch({ hp: 0, screen: "defeat", dialogue: null, journalOpen: false });
-        return;
-      }
-      player = tileCenter(2, 5);
       patch({
-        hp: blow.hp,
-        dialogue: {
-          speaker: "Égaré",
-          text: "Une forme trop longue sort des griffures. Tu recules, le souffle court.",
-        },
+        hp: 0,
+        shield: false,
+        streak: 0,
+        screen: "defeat",
+        dialogue: null,
+        journalOpen: false,
       });
       return;
     }
+    if (!exit.correct || result.shielded) {
+      hurt = 1;
+    }
+    const dest = ROOMS[exit.to];
+    let text = result.shielded ? "La lueur cède à ta place. Tu passes." : exit.line;
+    if (result.reward === "heal") {
+      text += " Une fiole intacte te rend un peu de forces.";
+    }
+    if (result.reward === "shield") {
+      text += " Une lueur froide se pose sur toi.";
+    }
     patch({
-      roomId: "torches",
-      zoneName: ROOMS.torches.name,
-      dialogue: {
-        speaker: "Pierre",
-        text: "La salle des torches. Derrière toi, la pierre se referme.",
-      },
+      hp: result.hp,
+      shield: result.shield,
+      streak: result.streak,
+      roomId: exit.to,
+      zoneName: dest.zone,
+      dialogue: { speaker: result.shielded || !exit.correct ? "Égaré" : "Pierre", text },
     });
   }
 
@@ -144,31 +144,32 @@ export function startRoom() {
       canvas.height = height;
     }
     const view = viewOf(room.map, rect.width, rect.height);
-    const eliane = elianeAt(state.roomId);
-    const near = Boolean(eliane) && Math.hypot(player.x - eliane.x, player.y - eliane.y) <= HEAR_DISTANCE;
+    const actors = actorsOf(room);
+    const near = actors.find((actor) => Math.hypot(player.x - actor.x, player.y - actor.y) <= HEAR_DISTANCE);
     hint.textContent = hintFor(room, near, now);
     drawRoom(canvas.getContext("2d"), rect.width, rect.height, dpr, view, {
       map: room.map,
       torches: room.torches,
       scratches: room.scratches,
       warm: room.warm,
+      tones: room.tones,
+      labels: room.labels,
+      actors,
+      nearId: near ? near.id : null,
       player,
-      eliane,
-      near,
       hurt,
       time: now / 1000,
     });
     canvas.dataset.room = state.roomId;
     canvas.dataset.px = String(Math.round(player.x));
     canvas.dataset.py = String(Math.round(player.y));
-    if (eliane) {
-      const mark = {
-        x: eliane.x * view.scale + view.offsetX,
-        y: eliane.y * view.scale + view.offsetY,
-      };
-      canvas.dataset.ex = String(Math.round(mark.x));
-      canvas.dataset.ey = String(Math.round(mark.y));
-    }
+    canvas.dataset.marks = JSON.stringify(
+      actors.map((actor) => ({
+        id: actor.id,
+        x: Math.round(actor.x * view.scale + view.offsetX),
+        y: Math.round(actor.y * view.scale + view.offsetY),
+      }))
+    );
   }
 
   function hintFor(room, near, now) {
@@ -181,24 +182,32 @@ export function startRoom() {
     if (state.dialogue) {
       return "Échap — fermer";
     }
-    if (room.eliane && near) {
-      return "Clic — écouter Eliane · Maj — carnet";
+    if (near) {
+      return `Clic — ${near.name} · Maj — carnet`;
     }
-    if (findMark(room.map, "L")) {
+    if (Object.keys(room.exits).length > 0) {
       return "Entrer dans un couloir décide · Maj — carnet";
     }
-    return "La pierre s’est refermée · Maj — carnet";
+    return "La pierre est proche · Maj — carnet";
   }
 
   requestAnimationFrame(frame);
 }
 
-function elianeAt(roomId) {
-  const room = ROOMS[roomId];
-  if (!room.eliane) {
-    return null;
-  }
-  return findMark(room.map, room.eliane);
+function actorsOf(room) {
+  return room.actors
+    .map((actor) => {
+      const spot = findMark(room.map, actor.mark);
+      if (!spot) {
+        return null;
+      }
+      return { ...actor, x: spot.x, y: spot.y };
+    })
+    .filter(Boolean);
+}
+
+function actorAt(roomId, x, y) {
+  return actorsOf(ROOMS[roomId]).find((actor) => Math.hypot(actor.x - x, actor.y - y) <= HIT_RADIUS) || null;
 }
 
 function pointFromEvent(canvas, event) {

@@ -8,6 +8,8 @@ export const state = {
   zoneName: "Le Seuil",
   roomId: "seuil",
   runId: 1,
+  shield: false,
+  streak: 0,
 };
 
 const listeners = new Set();
@@ -39,5 +41,7 @@ export function restartRun() {
     zoneName: "Le Seuil",
     roomId: "seuil",
     runId: state.runId + 1,
+    shield: false,
+    streak: 0,
   });
 }

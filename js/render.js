@@ -12,38 +12,29 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
   ctx.translate(view.offsetX, view.offsetY);
   ctx.scale(view.scale, view.scale);
 
-  drawFloor(ctx, map, scene.warm);
+  drawFloor(ctx, map, scene.warm, scene.tones);
   drawWalls(ctx, map);
   if (scene.scratches) {
     drawScratches(ctx);
   }
-  const left = findMark(map, "L");
-  const right = findMark(map, "R");
-  if (left) {
-    for (let row = 0; row < map.length; row += 2) {
-      if (map[row][0] === "L") {
-        drawLurker(ctx, TILE * 0.45, row * TILE + TILE / 2);
-      }
+  drawExits(ctx, map, scene.tones, scene.labels);
+  scene.actors.forEach((actor) => {
+    if (actor.kind === "chest") {
+      drawChest(ctx, actor.x, actor.y);
+    } else if (actor.kind === "note") {
+      drawNote(ctx, actor.x, actor.y);
+    } else {
+      drawPerson(ctx, actor.x, actor.y, { cloak: actor.cloak, skin: "#d9c3a4" });
     }
-    drawLabel(ctx, TILE * 2.3, TILE * 2.4, "Gauche");
-  }
-  if (right) {
-    drawLabel(ctx, (map[0].length - 2.5) * TILE, TILE * 2.4, "Droit");
-  }
-  if (scene.eliane) {
-    drawPerson(ctx, scene.eliane.x, scene.eliane.y, {
-      cloak: "#6e6256",
-      skin: "#d9c3a4",
-    });
-    drawLabel(ctx, scene.eliane.x, scene.eliane.y - 42, "Eliane");
-    if (scene.near) {
+    drawLabel(ctx, actor.x, actor.y - 42, actor.name);
+    if (actor.id === scene.nearId) {
       ctx.strokeStyle = "rgba(232, 165, 75, 0.85)";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(scene.eliane.x, scene.eliane.y + 4, 26, 0, Math.PI * 2);
+      ctx.arc(actor.x, actor.y + 4, 26, 0, Math.PI * 2);
       ctx.stroke();
     }
-  }
+  });
   drawPerson(ctx, scene.player.x, scene.player.y, {
     cloak: "#1a1411",
     skin: "#c6a07c",
@@ -58,7 +49,7 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
   ctx.restore();
 }
 
-function drawFloor(ctx, map, warm) {
+function drawFloor(ctx, map, warm, tones) {
   for (let row = 0; row < map.length; row += 1) {
     for (let col = 0; col < map[row].length; col += 1) {
       if (map[row][col] === "#") {
@@ -67,10 +58,13 @@ function drawFloor(ctx, map, warm) {
       const cell = map[row][col];
       const tone = (col * 13 + row * 29) % 9;
       const base = (warm ? 58 : 46) + tone;
-      if (cell === "L") {
-        ctx.fillStyle = `rgb(${62 + tone}, ${28}, ${32})`;
-      } else if (cell === "R") {
-        ctx.fillStyle = `rgb(${78 + tone}, ${58 + tone}, ${32})`;
+      const mood = tones[cell];
+      if (mood === "blood") {
+        ctx.fillStyle = `rgb(${70 + tone}, 32, 36)`;
+      } else if (mood === "warm") {
+        ctx.fillStyle = `rgb(${90 + tone}, ${64 + tone}, 36)`;
+      } else if (mood === "dark") {
+        ctx.fillStyle = `rgb(${18 + tone}, ${22 + tone}, ${34 + tone})`;
       } else {
         ctx.fillStyle = `rgb(${base + (warm ? 10 : 0)}, ${base - 7}, ${base - 14})`;
       }
@@ -100,6 +94,33 @@ function drawWalls(ctx, map) {
       }
     }
   }
+}
+
+function drawExits(ctx, map, tones, labels) {
+  Object.entries(labels).forEach(([mark, label]) => {
+    const spot = findMark(map, mark);
+    if (!spot) {
+      return;
+    }
+    const inward = spot.x < TILE * 2 ? TILE * 2.2 : spot.x > (map[0].length - 2) * TILE ? -TILE * 1.6 : 0;
+    const upward = spot.y < TILE * 2 ? TILE * 1.8 : -TILE * 0.8;
+    drawLabel(ctx, spot.x + inward, spot.y + upward, label);
+    if (tones[mark] === "blood" && spot.x < TILE * 2) {
+      drawLurker(ctx, spot.x + 10, spot.y);
+    }
+  });
+}
+
+function drawChest(ctx, x, y) {
+  ctx.fillStyle = "#3a2a18";
+  ctx.fillRect(x - 14, y - 8, 28, 18);
+  ctx.strokeStyle = "#e8a54b";
+  ctx.strokeRect(x - 14, y - 8, 28, 18);
+}
+
+function drawNote(ctx, x, y) {
+  ctx.fillStyle = "#e4d3b0";
+  ctx.fillRect(x - 10, y - 12, 20, 16);
 }
 
 function drawScratches(ctx) {
