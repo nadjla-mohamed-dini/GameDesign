@@ -10,6 +10,8 @@ export const state = {
   runId: 1,
   shield: false,
   streak: 0,
+  stoneTaken: false,
+  ending: null,
 };
 
 const listeners = new Set();
@@ -43,5 +45,7 @@ export function restartRun() {
     runId: state.runId + 1,
     shield: false,
     streak: 0,
+    stoneTaken: false,
+    ending: null,
   });
 }

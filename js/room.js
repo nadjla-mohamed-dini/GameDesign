@@ -11,7 +11,7 @@ import {
 } from "./collide.js";
 import { drawRoom } from "./render.js";
 import { ROOMS } from "./rooms.js";
-import { applyChoice } from "./resolve.js";
+import { applyChoice, applyHit } from "./resolve.js";
 
 const HIT_RADIUS = 30;
 
@@ -25,6 +25,8 @@ export function startRoom() {
   let last = performance.now();
   let runId = state.runId;
   let seenRoom = state.roomId;
+  let clock = { roomId: null, left: null, struck: false };
+  const pressure = document.getElementById("pressure");
 
   subscribe((current) => {
     if (current.runId === runId) {
@@ -32,6 +34,8 @@ export function startRoom() {
     }
     runId = current.runId;
     seenRoom = current.roomId;
+    clock = { roomId: null, left: null, struck: false };
+    pressure.hidden = true;
     const start = ROOMS[current.roomId].start;
     player = tileCenter(start.col, start.row);
     note = "";
@@ -62,7 +66,11 @@ export function startRoom() {
     const entries = already
       ? state.entries
       : [...state.entries, { id: actor.id, speaker: actor.name, text: actor.line }];
-    patch({ dialogue: { speaker: actor.name, text: actor.line }, entries });
+    patch({
+      dialogue: { speaker: actor.name, text: actor.line },
+      entries,
+      stoneTaken: actor.id === "pierre-voeu" ? true : state.stoneTaken,
+    });
   });
 
   canvas.addEventListener("mousemove", (event) => {
@@ -93,13 +101,40 @@ export function startRoom() {
         player = tileCenter(start.col, start.row);
       }
       hurt = Math.max(0, hurt - dt * 1.6);
-      paint(now);
+      if (state.screen === "game") {
+        tickPressure(dt);
+      }
+      if (state.screen === "game") {
+        paint(now);
+      }
     }
     requestAnimationFrame(frame);
   }
 
   function enterCorridor(exit) {
+    const room = ROOMS[state.roomId];
+    if (room.needsStone && !state.stoneTaken) {
+      const start = room.start;
+      player = tileCenter(start.col, start.row);
+      patch({
+        dialogue: { speaker: "Pierre", text: "La pierre t’attend encore." },
+      });
+      return;
+    }
     const result = applyChoice(state, exit);
+    if (exit.ending) {
+      hurt = result.dead || result.shielded ? 1 : 0;
+      patch({
+        hp: result.hp,
+        shield: result.shield,
+        streak: result.streak,
+        ending: result.dead ? "mort" : exit.ending,
+        screen: "ending",
+        dialogue: null,
+        journalOpen: false,
+      });
+      return;
+    }
     if (result.dead) {
       hurt = 1;
       patch({
@@ -163,6 +198,7 @@ export function startRoom() {
     canvas.dataset.room = state.roomId;
     canvas.dataset.px = String(Math.round(player.x));
     canvas.dataset.py = String(Math.round(player.y));
+    canvas.dataset.pressure = pressure.hidden ? "" : pressure.textContent;
     canvas.dataset.marks = JSON.stringify(
       actors.map((actor) => ({
         id: actor.id,
@@ -170,6 +206,55 @@ export function startRoom() {
         y: Math.round(actor.y * view.scale + view.offsetY),
       }))
     );
+  }
+
+  function tickPressure(dt) {
+    const room = ROOMS[state.roomId];
+    if (clock.roomId !== state.roomId) {
+      clock = { roomId: state.roomId, left: null, struck: false };
+    }
+    const ready = pressureReady(room);
+    if (!ready || clock.struck) {
+      pressure.hidden = true;
+      return;
+    }
+    if (clock.left == null) {
+      clock.left = room.seconds;
+    }
+    if (!state.journalOpen) {
+      clock.left -= dt;
+    }
+    if (clock.left <= 0) {
+      clock.left = 0;
+      clock.struck = true;
+      pressure.hidden = true;
+      const blow = applyHit(state, 15);
+      hurt = 1;
+      if (blow.dead) {
+        patch({
+          hp: 0,
+          shield: false,
+          streak: blow.streak,
+          screen: "defeat",
+          dialogue: null,
+          journalOpen: false,
+        });
+        return;
+      }
+      patch({
+        hp: blow.hp,
+        shield: blow.shield,
+        dialogue: {
+          speaker: "Égaré",
+          text: blow.shielded
+            ? "Le temps se ferme. La lueur cède à ta place."
+            : "Le temps se ferme. Un Égaré entre. Tu gardes le choix.",
+        },
+      });
+      return;
+    }
+    pressure.hidden = false;
+    pressure.textContent = `Le labyrinthe presse — ${Math.ceil(clock.left)}`;
   }
 
   function hintFor(room, near, now) {
@@ -192,6 +277,19 @@ export function startRoom() {
   }
 
   requestAnimationFrame(frame);
+}
+
+function pressureReady(room) {
+  if (!room.seconds) {
+    return false;
+  }
+  if (state.dialogue) {
+    return false;
+  }
+  if (room.arm === "stone") {
+    return state.stoneTaken;
+  }
+  return room.actors.length > 0 && room.actors.every((actor) => state.entries.some((entry) => entry.id === actor.id));
 }
 
 function actorsOf(room) {

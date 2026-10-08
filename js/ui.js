@@ -1,3 +1,4 @@
+import { ENDINGS } from "./rooms.js";
 import { state, subscribe } from "./state.js";
 
 export function bindUi() {
@@ -52,8 +53,17 @@ export function bindUi() {
       dialogueText.textContent = current.dialogue.text;
     }
 
+    if (current.screen === "ending" && ENDINGS[current.ending]) {
+      const ending = ENDINGS[current.ending];
+      document.getElementById("ending-eyebrow").textContent = ending.eyebrow;
+      document.getElementById("ending-title").textContent = ending.title;
+      document.getElementById("ending-text").textContent = ending.text;
+    }
+
     if (current.screen === "defeat") {
-      document.querySelector("[data-action='restart']").focus();
+      document.querySelector("[data-screen='defeat'] [data-action='restart']").focus();
+    } else if (current.screen === "ending") {
+      document.querySelector("[data-screen='ending'] [data-action='restart']").focus();
     } else if (showJournal) {
       journal.querySelector("[data-action='close-journal']").focus();
     } else if (showDialogue) {

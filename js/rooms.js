@@ -95,6 +95,7 @@ export const ROOMS = {
   },
   voix: {
     zone: "Les Voix",
+    seconds: 20,
     start: { col: 7, row: 4 },
     scratches: false,
     warm: false,
@@ -142,6 +143,7 @@ export const ROOMS = {
   },
   affiche: {
     zone: "Les Voix",
+    seconds: 20,
     start: { col: 7, row: 6 },
     scratches: false,
     warm: false,
@@ -167,6 +169,7 @@ export const ROOMS = {
   },
   hale: {
     zone: "Les Voix",
+    seconds: 20,
     start: { col: 7, row: 6 },
     scratches: false,
     warm: false,
@@ -203,6 +206,7 @@ export const ROOMS = {
   },
   coeur: {
     zone: "Le Cœur",
+    seconds: 10,
     start: { col: 7, row: 6 },
     scratches: false,
     warm: false,
@@ -256,25 +260,68 @@ export const ROOMS = {
   },
   pierre: {
     zone: "Le Cœur",
-    start: { col: 5, row: 3 },
+    seconds: 10,
+    arm: "stone",
+    needsStone: true,
+    start: { col: 7, row: 6 },
     scratches: false,
     warm: true,
     map: [
-      "############",
-      "#..........#",
-      "#..........#",
-      "#..........#",
-      "#..........#",
-      "############",
+      "################",
+      "#..............#",
+      "#..............#",
+      "#..P.......I...#",
+      "D..............B",
+      "D..............B",
+      "D..............B",
+      "#..............#",
+      "#..............#",
+      "#..............#",
+      "################",
     ],
     torches: [
-      { col: 2, row: 1.4 },
-      { col: 6, row: 1.4 },
-      { col: 9.5, row: 3.5 },
+      { col: 14, row: 5 },
+      { col: 3, row: 2 },
     ],
-    tones: {},
-    labels: {},
-    actors: [],
-    exits: {},
+    tones: { D: "dark", B: "warm" },
+    labels: { D: "Porte basse", B: "Lumière" },
+    actors: [
+      {
+        id: "pierre-voeu",
+        mark: "P",
+        name: "Pierre",
+        kind: "note",
+        line: "Formule le vœu. Tu es libre. La grande porte lumineuse est la sortie. L’autre se referme sur les voleurs.",
+      },
+      {
+        id: "inscription-basse",
+        mark: "I",
+        name: "Inscription",
+        kind: "note",
+        line: "La sortie est la porte basse, sans torche.",
+      },
+    ],
+    exits: {
+      D: { ending: "lucide", damage: 0, correct: true, line: "" },
+      B: { ending: "brisee", damage: 40, correct: false, line: "" },
+    },
+  },
+};
+
+export const ENDINGS = {
+  lucide: {
+    eyebrow: "Dehors",
+    title: "La porte basse",
+    text: "Tu sors, la pierre dans la main. Liora est peut-être malade. Le labyrinthe a peut-être inventé le vœu. Une dernière ligne s’écrit seule : « Malakai dit toujours la vérité. »",
+  },
+  brisee: {
+    eyebrow: "Dehors, de justesse",
+    title: "La pierre fêlée",
+    text: "La grande porte te recrache. La pierre est fendue. Tu ne sais plus si elle a jamais exaucé quoi que ce soit.",
+  },
+  mort: {
+    eyebrow: "Sans retour",
+    title: "Tu restes",
+    text: "La grande porte se referme sur toi. Le labyrinthe garde une voix de plus, pour le prochain voyageur.",
   },
 };

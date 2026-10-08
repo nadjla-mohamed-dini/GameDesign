@@ -59,6 +59,17 @@
         </article>
       </section>
 
+      <section class="screen screen--rules" data-screen="ending" hidden>
+        <article class="parchment">
+          <p class="eyebrow" id="ending-eyebrow"></p>
+          <h2 id="ending-title"></h2>
+          <p class="farewell" id="ending-text"></p>
+          <div class="row">
+            <button type="button" class="btn" data-action="restart">Recommencer</button>
+          </div>
+        </article>
+      </section>
+
       <section class="screen screen--game" data-screen="game" hidden>
         <header class="hud">
           <div class="hud__who">
@@ -80,6 +91,7 @@
           <canvas id="room" aria-label="Salle du Seuil"></canvas>
         </div>
 
+        <p class="pressure" id="pressure" hidden></p>
         <p class="hint" id="hint">ZQSD — marcher · Maj — carnet</p>
 
         <div class="dialogue" id="dialogue" hidden>

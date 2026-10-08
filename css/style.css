@@ -352,6 +352,20 @@ h1 {
   color: var(--parchment);
 }
 
+.pressure {
+  margin: 0;
+  padding: 0.2rem 1.4rem 0;
+  color: var(--amber);
+  font-family: var(--display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.pressure[hidden] {
+  display: none;
+}
+
 .hint {
   margin: 0;
   padding: 0.35rem 1.4rem 1rem;

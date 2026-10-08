@@ -31,3 +31,11 @@ export function applyChoice(current, exit) {
 
   return { hp, shield, streak, reward, shielded, dead: hp <= 0 };
 }
+
+export function applyHit(current, damage) {
+  if (current.shield) {
+    return { hp: current.hp, shield: false, streak: current.streak, shielded: true, dead: false };
+  }
+  const hp = Math.max(0, current.hp - damage);
+  return { hp, shield: false, streak: current.streak, shielded: false, dead: hp <= 0 };
+}
