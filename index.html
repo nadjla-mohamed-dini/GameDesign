@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Menteur(s)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <main id="app">
+      <section class="screen screen--title" data-screen="title">
+        <svg class="maze-mark" viewBox="0 0 360 220" aria-hidden="true">
+          <path
+            d="M20 20 H180 V80 H80 V140 H240 V40 H340 V200 H20 V120 H140 V180 H300"
+          />
+        </svg>
+        <p class="eyebrow">Labyrinthe perdu</p>
+        <h1>Menteur(s)</h1>
+        <p class="lede">Peut-on croire ce que le labyrinthe raconte&nbsp;?</p>
+        <button type="button" class="btn" data-action="to-rules" autofocus>
+          Entrer
+        </button>
+      </section>
+
+      <section class="screen screen--rules" data-screen="rules" hidden>
+        <article class="parchment">
+          <p class="eyebrow">Avant le seuil</p>
+          <h2>Ce que tu sais</h2>
+          <ul>
+            <li>Tu es Malakai. La pierre des vœux est au cœur du labyrinthe. Liora t’attend dehors.</li>
+            <li>ZQSD ou les flèches pour marcher. Clic gauche pour lire, écouter, ouvrir.</li>
+            <li>Maj ouvre le carnet. Deux paroles peuvent y être posées face à face.</li>
+            <li>Entrer dans un couloir est un choix. Derrière toi, la pierre se referme.</li>
+            <li>Si ta vie tombe à zéro, le labyrinthe te garde.</li>
+          </ul>
+          <div class="row">
+            <button type="button" class="btn btn--ghost" data-action="to-title">Retour</button>
+            <button type="button" class="btn" data-action="to-game">Commencer</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="screen screen--game" data-screen="game" hidden>
+        <header class="hud">
+          <div class="hud__who">
+            <span class="hud__name">Malakai</span>
+            <span class="hud__zone" id="zone-name">Le Seuil</span>
+          </div>
+          <div class="vial" id="vial" role="img" aria-label="Vie : 100 sur 100">
+            <div class="vial__glass">
+              <div class="vial__liquid" id="vial-liquid"></div>
+            </div>
+            <span class="vial__count" id="vial-count">100</span>
+          </div>
+        </header>
+
+        <div class="stage" id="stage" tabindex="-1">
+          <div class="torch torch--left" aria-hidden="true"></div>
+          <div class="torch torch--right" aria-hidden="true"></div>
+          <div class="arch" aria-hidden="true"></div>
+          <p class="stage__whisper">Les torches tiennent. Les voix ne sont pas encore entrées.</p>
+        </div>
+
+        <p class="hint">Maj — carnet</p>
+
+        <aside class="journal" id="journal" hidden>
+          <div class="journal__sheet" role="dialog" aria-modal="true" aria-labelledby="journal-title">
+            <header class="journal__head">
+              <div>
+                <p class="eyebrow">Recueilli</p>
+                <h2 id="journal-title">Carnet de Malakai</h2>
+              </div>
+              <button type="button" class="btn btn--ghost" data-action="close-journal">Fermer</button>
+            </header>
+            <p class="journal__empty" id="journal-empty">
+              Aucune parole recueillie. Les murs se taisent encore.
+            </p>
+            <ul class="journal__list" id="journal-list"></ul>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
