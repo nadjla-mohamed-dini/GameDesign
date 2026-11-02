@@ -1,3 +1,4 @@
+import { sealRelic } from "./relic.js";
 import { state, patch, subscribe } from "./state.js";
 import { getAxis } from "./input.js";
 import {
@@ -10,7 +11,7 @@ import {
   viewOf,
 } from "./collide.js";
 import { drawRoom } from "./render.js";
-import { ROOMS } from "./rooms.js";
+import { ROOMS, spokenSources } from "./rooms.js";
 import { applyChoice, applyHit } from "./resolve.js";
 import { presence, rest, seal, wound } from "./audio.js";
 
@@ -61,7 +62,8 @@ export function startRoom() {
     }
     const already = state.entries.some((entry) => entry.id === actor.id);
     if (actor.once && already) {
-      patch({ dialogue: { speaker: actor.name, text: "Le coffre est vide." } });
+      const empty = actor.kind === "relic" ? "La page ne dit rien de plus." : "Le coffre est vide.";
+      patch({ dialogue: { speaker: actor.name, text: empty } });
       return;
     }
     const entries = already
@@ -142,7 +144,13 @@ export function startRoom() {
       });
       return;
     }
+    const mistakes = exit.correct || state.mistakes.includes(state.roomId)
+      ? state.mistakes
+      : [...state.mistakes, state.roomId];
     const result = applyChoice(state, exit);
+    if (exit.ending || result.dead) {
+      sealRelic(mistakes, state.roomId);
+    }
     if (exit.ending) {
       if (result.dead || result.shielded) {
         sting();
@@ -151,6 +159,7 @@ export function startRoom() {
         hp: result.hp,
         shield: result.shield,
         streak: result.streak,
+        mistakes,
         ending: result.dead ? "mort" : exit.ending,
         screen: "ending",
         dialogue: null,
@@ -164,6 +173,7 @@ export function startRoom() {
         hp: 0,
         shield: false,
         streak: 0,
+        mistakes,
         screen: "defeat",
         dialogue: null,
         journalOpen: false,
@@ -185,6 +195,7 @@ export function startRoom() {
       hp: result.hp,
       shield: result.shield,
       streak: result.streak,
+      mistakes,
       roomId: exit.to,
       zoneName: dest.zone,
       dialogue: { speaker: result.shielded || !exit.correct ? "Égaré" : "Pierre", text },
@@ -202,7 +213,7 @@ export function startRoom() {
       canvas.height = height;
     }
     const view = viewOf(room.map, rect.width, rect.height);
-    const actors = actorsOf(room);
+      const actors = actorsOf(state.roomId);
     const near = actors.find((actor) => Math.hypot(player.x - actor.x, player.y - actor.y) <= HEAR_DISTANCE);
     hint.textContent = hintFor(room, near, now);
     drawRoom(canvas.getContext("2d"), rect.width, rect.height, dpr, view, {
@@ -254,6 +265,7 @@ export function startRoom() {
       const blow = applyHit(state, 15);
       sting();
       if (blow.dead) {
+        sealRelic(state.mistakes, state.roomId);
         patch({
           hp: 0,
           shield: false,
@@ -312,11 +324,13 @@ function pressureReady(room) {
   if (room.arm === "stone") {
     return state.stoneTaken;
   }
-  return room.actors.length > 0 && room.actors.every((actor) => state.entries.some((entry) => entry.id === actor.id));
+  const sources = spokenSources(room);
+  return sources.length > 0 && sources.every((actor) => state.entries.some((entry) => entry.id === actor.id));
 }
 
-function actorsOf(room) {
-  return room.actors
+function actorsOf(roomId) {
+  const room = ROOMS[roomId];
+  const placed = room.actors
     .map((actor) => {
       const spot = findMark(room.map, actor.mark);
       if (!spot) {
@@ -325,10 +339,25 @@ function actorsOf(room) {
       return { ...actor, x: spot.x, y: spot.y };
     })
     .filter(Boolean);
+  const relic = state.relic;
+  if (relic && relic.roomId === roomId) {
+    const spot = tileCenter(relic.col, relic.row);
+    placed.push({
+      id: `relique-${roomId}`,
+      name: relic.name,
+      kind: "relic",
+      once: true,
+      optional: true,
+      line: relic.text,
+      x: spot.x,
+      y: spot.y,
+    });
+  }
+  return placed;
 }
 
 function actorAt(roomId, x, y) {
-  return actorsOf(ROOMS[roomId]).find((actor) => Math.hypot(actor.x - x, actor.y - y) <= HIT_RADIUS) || null;
+  return actorsOf(roomId).find((actor) => Math.hypot(actor.x - x, actor.y - y) <= HIT_RADIUS) || null;
 }
 
 function pointFromEvent(canvas, event) {

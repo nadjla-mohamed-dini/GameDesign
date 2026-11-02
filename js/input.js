@@ -1,5 +1,5 @@
 import { isMuted, toggleMute, unlock } from "./audio.js";
-import { state, patch, restartRun, toggleJournal } from "./state.js";
+import { state, patch, restartRun, toggleJournal, togglePin } from "./state.js";
 
 const held = new Set();
 
@@ -31,7 +31,7 @@ export function bindInput() {
     if (!button) {
       return;
     }
-    run(button.dataset.action);
+    run(button.dataset.action, button);
   });
 
   document.addEventListener("keydown", (event) => {
@@ -95,7 +95,7 @@ function directionFrom(event) {
   return null;
 }
 
-function run(action) {
+function run(action, button) {
   if (action === "to-rules") {
     patch({ screen: "rules" });
   }
@@ -112,6 +112,9 @@ function run(action) {
     const button = document.getElementById("sound-toggle");
     button.textContent = quiet ? "Muet" : "Son";
     button.setAttribute("aria-pressed", String(quiet));
+  }
+  if (action === "pin-entry") {
+    togglePin(button.dataset.id);
   }
   if (action === "close-journal") {
     patch({ journalOpen: false });

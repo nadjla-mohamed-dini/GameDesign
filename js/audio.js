@@ -50,11 +50,11 @@ export function presence({ moving, hp, now }) {
   }
   if (moving && now - stepAt > 420) {
     stepAt = now;
-    noise(audio, 0.045, 180, 0.035);
+    noise(audio, 0.045, 180, 0.07);
   }
   if (hp <= 40 && now - beatAt > 860) {
     beatAt = now;
-    blip(audio, 62, 0.09, "sine", 0.05);
+    blip(audio, 62, 0.09, "sine", 0.1);
   }
 }
 
@@ -68,7 +68,7 @@ export function seal() {
   osc.type = "sine";
   osc.frequency.setValueAtTime(160, audio.currentTime);
   osc.frequency.exponentialRampToValueAtTime(48, audio.currentTime + 0.34);
-  gain.gain.setValueAtTime(0.05, audio.currentTime);
+  gain.gain.setValueAtTime(0.1, audio.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.36);
   osc.connect(gain).connect(audio.destination);
   osc.start();
@@ -80,7 +80,7 @@ export function wound() {
   if (!audio) {
     return;
   }
-  noise(audio, 0.14, 90, 0.07);
+  noise(audio, 0.14, 90, 0.14);
 }
 
 function machine() {
@@ -103,7 +103,7 @@ function machine() {
 
 function startDrone(audio) {
   const gain = audio.createGain();
-  gain.gain.value = 0.018;
+  gain.gain.value = 0.036;
   const low = audio.createOscillator();
   const high = audio.createOscillator();
   low.type = "sine";

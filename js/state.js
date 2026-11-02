@@ -1,3 +1,5 @@
+import { readRelic } from "./relic.js";
+
 export const state = {
   screen: "title",
   hp: 100,
@@ -5,6 +7,9 @@ export const state = {
   journalOpen: false,
   dialogue: null,
   entries: [],
+  pins: [],
+  mistakes: [],
+  relic: readRelic(),
   zoneName: "Le Seuil",
   roomId: "seuil",
   runId: 1,
@@ -33,6 +38,21 @@ export function toggleJournal() {
   patch({ journalOpen: !state.journalOpen });
 }
 
+export function togglePin(id) {
+  if (!state.entries.some((entry) => entry.id === id)) {
+    return;
+  }
+  let pins;
+  if (state.pins.includes(id)) {
+    pins = state.pins.filter((pin) => pin !== id);
+  } else if (state.pins.length >= 2) {
+    pins = [state.pins[1], id];
+  } else {
+    pins = [...state.pins, id];
+  }
+  patch({ pins });
+}
+
 export function restartRun() {
   patch({
     screen: "game",
@@ -40,6 +60,9 @@ export function restartRun() {
     journalOpen: false,
     dialogue: null,
     entries: [],
+    pins: [],
+    mistakes: [],
+    relic: readRelic(),
     zoneName: "Le Seuil",
     roomId: "seuil",
     runId: state.runId + 1,

@@ -33,6 +33,10 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
       drawChest(ctx, actor.x, actor.y);
     } else if (actor.kind === "note") {
       drawNote(ctx, actor.x, actor.y);
+    } else if (actor.kind === "trace") {
+      drawTrace(ctx, actor.x, actor.y, actor.sigil);
+    } else if (actor.kind === "relic") {
+      drawRelic(ctx, actor.x, actor.y);
     } else {
       drawPerson(ctx, actor.x, actor.y, { cloak: actor.cloak, skin: "#d9c3a4" });
     }
@@ -125,6 +129,74 @@ function drawChest(ctx, x, y) {
 function drawNote(ctx, x, y) {
   ctx.fillStyle = "#e4d3b0";
   ctx.fillRect(x - 10, y - 12, 20, 16);
+}
+
+function drawTrace(ctx, x, y, sigil) {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(x, y + 8, 14, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  if (sigil) {
+    drawSigil(ctx, x, y, sigil);
+    return;
+  }
+  ctx.fillStyle = "#3a2e24";
+  ctx.fillRect(x - 8, y - 3, 6, 11);
+  ctx.fillRect(x + 2, y - 1, 6, 11);
+}
+
+function drawSigil(ctx, x, y, sigil) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  if (sigil === "repeint") {
+    ctx.strokeStyle = "rgba(232, 165, 75, 0.95)";
+    ctx.beginPath();
+    ctx.arc(2, -1, 12, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(90, 70, 48, 0.9)";
+    ctx.beginPath();
+    ctx.arc(-1, 1, 9, 0.3, Math.PI * 1.75);
+    ctx.stroke();
+  } else if (sigil === "fendu") {
+    ctx.strokeStyle = "rgba(232, 196, 140, 0.95)";
+    ctx.beginPath();
+    ctx.arc(0, 0, 11, 0.7, Math.PI * 1.85);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-1, -13);
+    ctx.lineTo(4, 13);
+    ctx.stroke();
+  } else {
+    ctx.strokeStyle = "rgba(232, 196, 140, 0.95)";
+    ctx.beginPath();
+    ctx.arc(0, 0, 11, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawRelic(ctx, x, y) {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(x, y + 12, 12, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#d9c7a1";
+  ctx.fillRect(x - 10, y - 14, 20, 24);
+  ctx.strokeStyle = "#6e3b32";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x - 10, y - 14, 20, 24);
+  ctx.beginPath();
+  ctx.moveTo(x + 4, y - 14);
+  ctx.lineTo(x + 10, y - 8);
+  ctx.lineTo(x + 4, y - 8);
+  ctx.closePath();
+  ctx.fillStyle = "#b08968";
+  ctx.fill();
+  ctx.fillStyle = "#6e3b32";
+  ctx.fillRect(x - 6, y - 2, 12, 1.5);
+  ctx.fillRect(x - 6, y + 3, 8, 1.5);
 }
 
 function drawScratches(ctx) {

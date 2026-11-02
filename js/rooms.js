@@ -15,6 +15,10 @@ const BAND = [
   "################",
 ];
 
+export function spokenSources(room) {
+  return room.actors.filter((actor) => !actor.optional);
+}
+
 function withExits(rows, left, right) {
   return rows.map((row, index) => {
     if (row.startsWith("#")) {
@@ -30,9 +34,11 @@ export const ROOMS = {
     start: { col: 4, row: 5 },
     scratches: true,
     warm: false,
-    map: withExits(BAND, "L", "R").map((row, index) =>
-      index === 5 ? "L........E.....R" : row
-    ),
+    map: withExits(BAND, "L", "R").map((row, index) => {
+      if (index === 4) return "L...........T..R";
+      if (index === 5) return "L........E.....R";
+      return row;
+    }),
     torches: [
       { col: 8, row: 1.4 },
       { col: 14.2, row: 5.2 },
@@ -47,6 +53,15 @@ export const ROOMS = {
         kind: "person",
         cloak: "#6e6256",
         line: "Le couloir de gauche sent le sang. J’en viens. Le droit mène à la salle des torches. Prends le droit.",
+      },
+      {
+        id: "cercle-seuil",
+        mark: "T",
+        name: "Cercle",
+        kind: "trace",
+        optional: true,
+        sigil: "net",
+        line: "Un cercle est gravé net sur le mur de droite. À gauche, quatre griffures lacèrent la pierre.",
       },
     ],
     exits: {
@@ -66,7 +81,7 @@ export const ROOMS = {
       "#.....####.....#",
       "L.....####.....R",
       "L......C.......R",
-      "L..............R",
+      "L....T.........R",
       "#.....####.....#",
       "#..............#",
       "#..............#",
@@ -87,6 +102,15 @@ export const ROOMS = {
         once: true,
         line: "Trois arches. Celle du milieu est effondrée. Passe sous la première.",
       },
+      {
+        id: "eboulis",
+        mark: "T",
+        name: "Éboulis",
+        kind: "trace",
+        optional: true,
+        sigil: "net",
+        line: "L’arche du milieu est tombée. Sous la première, à gauche, le passage est libre. Un cercle net est gravé sur son pilier.",
+      },
     ],
     exits: {
       L: { to: "voix", damage: 0, correct: true, line: CALM },
@@ -102,10 +126,10 @@ export const ROOMS = {
     map: [
       "######UUUU######",
       "#..............#",
-      "#..............#",
+      "#......G.......#",
       "#..............#",
       "#..V.......A...E",
-      "#..............E",
+      "#..B...........E",
       "#..............E",
       "#..............E",
       "#..............#",
@@ -135,6 +159,23 @@ export const ROOMS = {
         cloak: "#7d6a62",
         line: "Le nord gronde. J’ai vu une ombre. L’est est calme, j’en suis sûre… je crois.",
       },
+      {
+        id: "bottes-corvin",
+        mark: "B",
+        name: "Bottes",
+        kind: "trace",
+        optional: true,
+        line: "Les bottes de Corvin sont sèches. Aucune boue du couloir du nord.",
+      },
+      {
+        id: "cercle-voix",
+        mark: "G",
+        name: "Cercle",
+        kind: "trace",
+        optional: true,
+        sigil: "repeint",
+        line: "Un grondement monte du nord. Le cercle au-dessus de ce passage a été repeint : la couleur est trop fraîche.",
+      },
     ],
     exits: {
       U: { to: "affiche", damage: 30, correct: false, line: HURT },
@@ -147,9 +188,11 @@ export const ROOMS = {
     start: { col: 7, row: 6 },
     scratches: false,
     warm: false,
-    map: withExits(BAND, "L", "R").map((row, index) =>
-      index === 3 ? "#......I.......#" : row
-    ),
+    map: withExits(BAND, "L", "R").map((row, index) => {
+      if (index === 3) return "#......I.......#";
+      if (index === 5) return "L......T.......R";
+      return row;
+    }),
     torches: [{ col: 8, row: 1.5 }],
     tones: { L: "dark", R: "blood" },
     labels: { L: "Gauche", R: "Droit" },
@@ -160,6 +203,15 @@ export const ROOMS = {
         name: "Affiche",
         kind: "note",
         line: "DROITE : MORT. GAU…",
+      },
+      {
+        id: "lettres",
+        mark: "T",
+        name: "Lettres",
+        kind: "trace",
+        optional: true,
+        sigil: "repeint",
+        line: "Les morceaux au sol finissent le mot coupé : GAUCHE. Le cercle de l’affiche est tracé par-dessus une rayure plus ancienne.",
       },
     ],
     exits: {
@@ -175,6 +227,7 @@ export const ROOMS = {
     warm: false,
     map: withExits(BAND, "L", "R").map((row, index) => {
       if (index === 3) return "#......C.......#";
+      if (index === 4) return "L.........T....R";
       if (index === 5) return "L......H.......R";
       return row;
     }),
@@ -198,6 +251,15 @@ export const ROOMS = {
         once: true,
         line: "Le trait juste pointe à droite. La gauche est barrée.",
       },
+      {
+        id: "empreintes",
+        mark: "T",
+        name: "Empreintes",
+        kind: "trace",
+        optional: true,
+        sigil: "fendu",
+        line: "Des empreintes fraîches partent vers la droite. Celles de gauche sont sèches. Le cercle près de Hale est fendu.",
+      },
     ],
     exits: {
       L: { to: "coeur", damage: 30, correct: false, line: HURT },
@@ -213,7 +275,7 @@ export const ROOMS = {
     map: [
       "################",
       "#..............#",
-      "#..S.......P...#",
+      "#..S.......P.F.#",
       "#......M.......#",
       "D..............B",
       "D..............B",
@@ -252,6 +314,15 @@ export const ROOMS = {
         kind: "note",
         line: "Suivez la lumière, elle ne ment jamais.",
       },
+      {
+        id: "peinture",
+        mark: "F",
+        name: "Peinture",
+        kind: "trace",
+        optional: true,
+        sigil: "repeint",
+        line: "La peinture de l'affiche est encore humide. Son cercle a été repeint. Le reste du mur est vieux.",
+      },
     ],
     exits: {
       D: { to: "pierre", damage: 0, correct: true, line: "La pierre est proche. Le chemin derrière toi n’existe plus." },
@@ -271,7 +342,7 @@ export const ROOMS = {
       "#..............#",
       "#..............#",
       "#..P.......I...#",
-      "D..............B",
+      "D..T...........B",
       "D..............B",
       "D..............B",
       "#..............#",
@@ -299,6 +370,15 @@ export const ROOMS = {
         name: "Inscription",
         kind: "note",
         line: "La sortie est la porte basse, sans torche.",
+      },
+      {
+        id: "pas",
+        mark: "T",
+        name: "Pas",
+        kind: "trace",
+        optional: true,
+        sigil: "net",
+        line: "Devant la porte basse, la pierre est usée par des pas. Devant la porte claire, la poussière n’a pas bougé. Le cercle net est du côté sombre.",
       },
     ],
     exits: {

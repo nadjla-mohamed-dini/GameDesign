@@ -38,6 +38,8 @@
             <li>Tu es Malakai. La pierre des vœux est au cœur du labyrinthe. Liora t’attend dehors.</li>
             <li>ZQSD ou les flèches pour marcher. Clic gauche pour lire, écouter, ouvrir.</li>
             <li>Maj ouvre le carnet. Deux paroles peuvent y être posées face à face.</li>
+            <li>Un clic sur une trace, un mur ou un objet laissé l’inscrit aussi dans le carnet.</li>
+            <li>Parfois, une page ancienne attend dans une salle. Elle vient d’un passage d’avant.</li>
             <li>Entrer dans un couloir est un choix. Derrière toi, la pierre se referme.</li>
             <li>Si ta vie tombe à zéro, le labyrinthe te garde.</li>
           </ul>
@@ -118,6 +120,11 @@
             <p class="journal__empty" id="journal-empty">
               Aucune parole recueillie. Les murs se taisent encore.
             </p>
+            <p class="journal__note" id="journal-pin-note" hidden></p>
+            <div class="journal__face" id="journal-face" hidden>
+              <p class="eyebrow">Face à face</p>
+              <div class="journal__pair" id="journal-pair"></div>
+            </div>
             <ul class="journal__list" id="journal-list"></ul>
           </div>
         </aside>
