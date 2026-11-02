@@ -232,7 +232,7 @@ export const ROOMS = {
       return row;
     }),
     torches: [{ col: 4, row: 1.5 }, { col: 12, row: 1.5 }],
-    tones: { L: "blood", R: "warm" },
+    tones: { L: "warm", R: "blood" },
     labels: { L: "Gauche", R: "Droit" },
     actors: [
       {
