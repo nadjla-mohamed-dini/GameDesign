@@ -43,7 +43,6 @@ export const ROOMS = {
       { col: 8, row: 1.4 },
       { col: 14.2, row: 5.2 },
     ],
-    tones: { L: "blood", R: "warm" },
     labels: { L: "Gauche", R: "Droit" },
     actors: [
       {
@@ -91,7 +90,6 @@ export const ROOMS = {
       { col: 2, row: 1.5 },
       { col: 13, row: 1.5 },
     ],
-    tones: { L: "warm", R: "blood" },
     labels: { L: "Première", R: "Troisième" },
     actors: [
       {
@@ -140,7 +138,6 @@ export const ROOMS = {
       { col: 3, row: 2 },
       { col: 12, row: 6 },
     ],
-    tones: { U: "blood", E: "warm" },
     labels: { U: "Nord", E: "Est" },
     actors: [
       {
@@ -194,7 +191,6 @@ export const ROOMS = {
       return row;
     }),
     torches: [{ col: 8, row: 1.5 }],
-    tones: { L: "dark", R: "blood" },
     labels: { L: "Gauche", R: "Droit" },
     actors: [
       {
@@ -232,7 +228,6 @@ export const ROOMS = {
       return row;
     }),
     torches: [{ col: 4, row: 1.5 }, { col: 12, row: 1.5 }],
-    tones: { L: "warm", R: "blood" },
     labels: { L: "Gauche", R: "Droit" },
     actors: [
       {
@@ -289,7 +284,6 @@ export const ROOMS = {
       { col: 14, row: 5 },
       { col: 2, row: 2 },
     ],
-    tones: { D: "dark", B: "warm" },
     labels: { D: "Sombre", B: "Lumière" },
     actors: [
       {
@@ -354,7 +348,6 @@ export const ROOMS = {
       { col: 14, row: 5 },
       { col: 3, row: 2 },
     ],
-    tones: { D: "dark", B: "warm" },
     labels: { D: "Porte basse", B: "Lumière" },
     actors: [
       {

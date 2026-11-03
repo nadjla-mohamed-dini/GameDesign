@@ -221,7 +221,6 @@ export function startRoom() {
       torches: room.torches,
       scratches: room.scratches,
       warm: room.warm,
-      tones: room.tones,
       labels: room.labels,
       actors,
       nearId: near ? near.id : null,

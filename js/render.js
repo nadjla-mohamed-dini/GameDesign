@@ -16,7 +16,7 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
   );
   ctx.scale(view.scale, view.scale);
 
-  drawFloor(ctx, map, scene.warm, scene.tones);
+  drawFloor(ctx, map, scene.warm);
   drawWalls(ctx, map);
   if (scene.scratches) {
     drawScratches(ctx);
@@ -27,7 +27,7 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
     ctx.fillRect(0, 0, world.width, world.height);
   }
   drawVignette(ctx, world.width, world.height);
-  drawExits(ctx, map, scene.tones, scene.labels);
+  drawExits(ctx, map, scene.labels);
   scene.actors.forEach((actor) => {
     if (actor.kind === "chest") {
       drawChest(ctx, actor.x, actor.y);
@@ -57,25 +57,15 @@ export function drawRoom(ctx, cssWidth, cssHeight, dpr, view, scene) {
   ctx.restore();
 }
 
-function drawFloor(ctx, map, warm, tones) {
+function drawFloor(ctx, map, warm) {
   for (let row = 0; row < map.length; row += 1) {
     for (let col = 0; col < map[row].length; col += 1) {
       if (map[row][col] === "#") {
         continue;
       }
-      const cell = map[row][col];
       const tone = (col * 13 + row * 29) % 9;
       const base = (warm ? 58 : 46) + tone;
-      const mood = tones[cell];
-      if (mood === "blood") {
-        ctx.fillStyle = `rgb(${70 + tone}, 32, 36)`;
-      } else if (mood === "warm") {
-        ctx.fillStyle = `rgb(${90 + tone}, ${64 + tone}, 36)`;
-      } else if (mood === "dark") {
-        ctx.fillStyle = `rgb(${18 + tone}, ${22 + tone}, ${34 + tone})`;
-      } else {
-        ctx.fillStyle = `rgb(${base + (warm ? 10 : 0)}, ${base - 7}, ${base - 14})`;
-      }
+      ctx.fillStyle = `rgb(${base + (warm ? 10 : 0)}, ${base - 7}, ${base - 14})`;
       ctx.fillRect(col * TILE, row * TILE, TILE + 0.5, TILE + 0.5);
       if ((col + row) % 4 === 0) {
         ctx.fillStyle = "rgba(0, 0, 0, 0.13)";
@@ -104,7 +94,7 @@ function drawWalls(ctx, map) {
   }
 }
 
-function drawExits(ctx, map, tones, labels) {
+function drawExits(ctx, map, labels) {
   Object.entries(labels).forEach(([mark, label]) => {
     const spot = findMark(map, mark);
     if (!spot) {
@@ -113,9 +103,6 @@ function drawExits(ctx, map, tones, labels) {
     const inward = spot.x < TILE * 2 ? TILE * 2.2 : spot.x > (map[0].length - 2) * TILE ? -TILE * 1.6 : 0;
     const upward = spot.y < TILE * 2 ? TILE * 1.8 : -TILE * 0.8;
     drawLabel(ctx, spot.x + inward, spot.y + upward, label);
-    if (tones[mark] === "blood" && spot.x < TILE * 2) {
-      drawLurker(ctx, spot.x + 10, spot.y);
-    }
   });
 }
 
@@ -210,19 +197,6 @@ function drawScratches(ctx) {
     ctx.lineTo(originX + 28, originY + 16 + i * 8);
     ctx.stroke();
   }
-}
-
-function drawLurker(ctx, x, y) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.fillStyle = "#2a1218";
-  ctx.beginPath();
-  ctx.moveTo(0, -34);
-  ctx.lineTo(10, 16);
-  ctx.lineTo(-10, 16);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
 }
 
 function drawPerson(ctx, x, y, look) {
